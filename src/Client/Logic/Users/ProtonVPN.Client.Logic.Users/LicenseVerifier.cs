@@ -1,5 +1,5 @@
-﻿/*
- * Copyright (c) 2023 Proton AG
+/*
+ * Copyright (c) 2025 Proton AG
  *
  * This file is part of ProtonVPN.
  *
@@ -17,19 +17,20 @@
  * along with ProtonVPN.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using Autofac;
-using ProtonVPN.Client.Logic.Users.Handlers;
-using ProtonVPN.Client.Logic.Users.Observers;
+using ProtonVPN.Client.Logic.Users.Contracts;
+using ProtonVPN.Client.Logic.Users.Contracts.Messages;
 
-namespace ProtonVPN.Client.Logic.Users.Installers;
+namespace ProtonVPN.Client.Logic.Users;
 
-public class UsersLogicModule : Module
+public class LicenseVerifier : ILicenseVerifier
 {
-    protected override void Load(ContainerBuilder builder)
+    public LicenseStatus Verify(VpnPlan plan)
     {
-        builder.RegisterType<VpnPlanChangedHandler>().AsImplementedInterfaces().AutoActivate().SingleInstance();
-        builder.RegisterType<VpnPlanUpdater>().AsImplementedInterfaces().SingleInstance();
-        builder.RegisterType<VpnPlanObserver>().AsImplementedInterfaces().AutoActivate().SingleInstance();
-        builder.RegisterType<LicenseVerifier>().AsImplementedInterfaces().SingleInstance();
+        if (plan.IsDefault)
+        {
+            return LicenseStatus.Unknown;
+        }
+
+        return plan.IsPaid ? LicenseStatus.Premium : LicenseStatus.Free;
     }
 }

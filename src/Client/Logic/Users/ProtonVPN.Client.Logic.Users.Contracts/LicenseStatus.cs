@@ -1,5 +1,5 @@
-﻿/*
- * Copyright (c) 2024 Proton AG
+/*
+ * Copyright (c) 2025 Proton AG
  *
  * This file is part of ProtonVPN.
  *
@@ -17,15 +17,11 @@
  * along with ProtonVPN.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using ProtonVPN.Api.Contracts;
-using ProtonVPN.Api.Contracts.Auth;
-using ProtonVPN.Client.Logic.Users.Contracts.Messages;
-
 namespace ProtonVPN.Client.Logic.Users.Contracts;
 
-public class VpnPlanChangeResult
+public enum LicenseStatus
 {
-    public required ApiResponseResult<VpnInfoWrapperResponse>? ApiResponse { get; init; }
-    public required VpnPlanChangedMessage? PlanChangeMessage { get; init; }
-    public required LicenseStatus LicenseStatus { get; init; }
+    Unknown,
+    Free,
+    Premium,
 }
