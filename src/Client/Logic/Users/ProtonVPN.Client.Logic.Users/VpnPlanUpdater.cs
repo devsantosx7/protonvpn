@@ -36,6 +36,7 @@ public class VpnPlanUpdater : IVpnPlanUpdater
     private readonly ILogger _logger;
     private readonly IConfiguration _configuration;
     private readonly IEventMessageSender _eventMessageSender;
+    private readonly ILicenseVerifier _licenseVerifier;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
     private DateTime _minimumRequestDateUtc = DateTime.MinValue;
@@ -44,13 +45,15 @@ public class VpnPlanUpdater : IVpnPlanUpdater
         ISettings settings,
         ILogger logger,
         IConfiguration configuration,
-        IEventMessageSender eventMessageSender)
+        IEventMessageSender eventMessageSender,
+        ILicenseVerifier licenseVerifier)
     {
         _apiClient = apiClient;
         _settings = settings;
         _logger = logger;
         _configuration = configuration;
         _eventMessageSender = eventMessageSender;
+        _licenseVerifier = licenseVerifier;
     }
 
     public async Task<VpnPlanChangeResult> ForceUpdateAsync(CancellationToken cancellationToken = default)
@@ -69,6 +72,7 @@ public class VpnPlanUpdater : IVpnPlanUpdater
 
         ApiResponseResult<VpnInfoWrapperResponse>? response = null;
         VpnPlanChangedMessage? vpnPlanChangedMessage = null;
+        LicenseStatus licenseStatus = _licenseVerifier.Verify(_settings.VpnPlan);
 
         try
         {
@@ -86,6 +90,7 @@ public class VpnPlanUpdater : IVpnPlanUpdater
 
                     vpnPlanChangedMessage = GetVpnPlanChangeMessage(response.Value.Vpn);
                     OnResponseSuccess(vpnPlanChangedMessage);
+                    licenseStatus = _licenseVerifier.Verify(vpnPlanChangedMessage.NewPlan);
                 }
                 else
                 {
@@ -113,7 +118,8 @@ public class VpnPlanUpdater : IVpnPlanUpdater
         return new VpnPlanChangeResult
         {
             ApiResponse = response,
-            PlanChangeMessage = vpnPlanChangedMessage
+            PlanChangeMessage = vpnPlanChangedMessage,
+            LicenseStatus = licenseStatus
         };
     }
 
